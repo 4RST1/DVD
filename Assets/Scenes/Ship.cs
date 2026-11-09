@@ -1,3 +1,5 @@
+using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
@@ -7,18 +9,52 @@ public class Ship : MonoBehaviour
 {
 
 
-    public float Speed, Augmentation;
+    public float BaseSpeed, Augmentation;
 
     private Vector3 MousPos, direction;
 
+    [SerializeField] private ShootBehavour Shoot;
+    [SerializeField] private GameObject Win, LoosePanel;
+
+    private float Timer, Speed;
 
     private void Start()
     {
-
+        Speed = BaseSpeed;
     }
     void Update()
     {
 
+        //Verify if victory
+        if (FindObjectsByType<Asteroid>().Length == 0)
+        {
+            Win.SetActive(true);
+            Time.timeScale = 0;
+        }
+
+        //Shoot
+        Timer += Time.deltaTime;
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            if (Timer > 0.2f)
+            {
+                Timer = 0;
+                Instantiate(Shoot, transform.position, transform.rotation);
+            }
+        }
+
+        //Acceleration
+        if (Input.GetKey(KeyCode.Mouse1))
+        {
+            Speed += Augmentation * Time.deltaTime;
+        }
+        else
+        {
+                Speed = BaseSpeed;
+        }
+
+
+        //Make the ship move 
         Vector3 NewMousPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         NewMousPos.z = 0;
 
@@ -39,6 +75,7 @@ public class Ship : MonoBehaviour
 
         }
 
+        //Go Back to screen if go out
         Vector3 screenSize = Camera.main.ViewportToWorldPoint(Vector2.one) - Camera.main.ViewportToWorldPoint(Vector2.zero);
         if (transform.position.x > screenSize.x / 2)
         {
@@ -66,14 +103,20 @@ public class Ship : MonoBehaviour
             LookAtMouse();  
         }
 
-        //Collision
-        foreach (Asteroid t in FindObjectsByType<Asteroid>())
-        {
-            if ((t.transform.position.x - transform.position.x) t.)
-        }
+
 
 
     }
+
+
+    //Loose 
+    public void Loose()
+    {
+        LoosePanel.SetActive(true);
+        Time.timeScale = 0;
+    }
+
+    //Set direction to mouse after Teleport 
         void LookAtMouse()
         {
             float opposite = transform.position.y - MousPos.y;
